@@ -3,7 +3,7 @@ from abc import ABCMeta, abstractmethod
 from dataclasses import dataclass, field
 from datetime import datetime, timedelta
 import re
-from typing import Any, Dict, List,Optional, Union, List
+from typing import Any, Dict, List, Optional, Union
 import pytz
 # 第三方库
 from apscheduler.schedulers.background import BackgroundScheduler
@@ -62,10 +62,10 @@ class TorrentInfo:
     files: List[TorrentFile] = field(default_factory=list)
 
 
-
 class QbittorrentDownloader():
     def __init__(self, qbc: Qbittorrent):
         self.qbc = qbc.qbc
+
     def torrents_rename(self, torrent_hash: str, new_torrent_name: str) -> None:
         self.qbc.torrents_rename(torrent_hash=torrent_hash, new_torrent_name=new_torrent_name)
 
@@ -78,14 +78,14 @@ class QbittorrentDownloader():
         if torrents_info:
             for torrent_info in torrents_info:
                 torrents.append(TorrentInfo(
-                    name = torrent_info.get('name'),
-                    save_path = torrent_info.get('save_path'),
-                    total_size = torrent_info.get('total_size'),
+                    name=torrent_info.get('name'),
+                    save_path=torrent_info.get('save_path'),
+                    total_size=torrent_info.get('total_size'),
                     hash=torrent_info.get('hash'),
                     auto_tmm=torrent_info.get('auto_tmm'),
                     category=torrent_info.get('category'),
                     tags=torrent_info.get('tags').split(","),
-                    files= [
+                    files=[
                         TorrentFile(
                             name=file.get('name'),
                             size=file.get('size'),
@@ -109,13 +109,13 @@ class RenameTorrent(_PluginBase):
     # 插件描述
     plugin_desc = "根据自定义格式修改MP下载种子的种子名称(基于wikrin修改)"
     # 插件图标
-    plugin_icon = "https://raw.githubusercontent.com/wikrin/MoviePilot-Plugins/main/icons/alter_1.png"
+    plugin_icon = "https://raw.githubusercontent.com/wikrin/MoviePilot-Plugins/main/icons/alter_1.png  "
     # 插件版本
-    plugin_version = "2.6.8"
+    plugin_version = "2.6.9"
     # 插件作者
     plugin_author = "Seed680"
     # 作者主页
-    author_url = "https://github.com/Seed680"
+    author_url = "https://github.com/Seed680  "
     # 插件配置项ID前缀
     plugin_config_prefix = "renametorrent_"
     # 加载顺序
@@ -188,7 +188,6 @@ class RenameTorrent(_PluginBase):
                 # 启动服务
                 self._scheduler.print_jobs()
                 self._scheduler.start()
-
 
     def load_config(self, config: dict):
         """加载配置"""
@@ -527,7 +526,7 @@ class RenameTorrent(_PluginBase):
         处理事件
         """
         if not self._event_enabled \
-            and not event:
+                and not event:
             return
         if len(self._downloader) == 0:
             logger.info("下载器为空")
@@ -606,11 +605,13 @@ class RenameTorrent(_PluginBase):
                 # 判断是否尝试失败的种子
                 if self._retry:
                     logger.debug(f"尝试失败的种子")
-                    torrents_info = [torrent_info for torrent_info in self.downloader.torrents_info() if torrent_info.hash not in processed]
+                    torrents_info = [torrent_info for torrent_info in self.downloader.torrents_info() if
+                                     torrent_info.hash not in processed]
                 else:
                     logger.debug(f"不尝试失败的种子")
-                    torrents_info = [torrent_info for torrent_info in self.downloader.torrents_info() if torrent_info.hash not in processed and torrent_info.hash not in pending]
-                    # 判断是否在白名单内
+                    torrents_info = [torrent_info for torrent_info in self.downloader.torrents_info() if
+                                     torrent_info.hash not in processed and torrent_info.hash not in pending]
+                # 判断是否在白名单内
                 if self._hash_white_list:
                     logger.debug(f"存在hash白名单")
                     torrents_info = self.downloader.torrents_info(torrent_hash=self._hash_white_list.strip().split("\n"))
@@ -632,11 +633,12 @@ class RenameTorrent(_PluginBase):
                         logger.debug(f"通过hash查询下载历史记录开始 hash：{result_hash}")
                         downloadhis = DownloadHistoryOper().get_by_hash(result_hash)
                         if downloadhis:
-                            logger.debug(f"通过hash查询下载历史记录完成 hash:{result_hash} his_id:{downloadhis.id} his_hash:{downloadhis.download_hash}")
+                            logger.debug(
+                                f"通过hash查询下载历史记录完成 hash:{result_hash} his_id:{downloadhis.id} his_hash:{downloadhis.download_hash}")
                         else:
                             logger.debug(f"未查询到下载历史记录 hash:{result_hash}")
                         # 执行处理
-                        if self.main(torrent_info=torrent_info, downloadhis=downloadhis ):
+                        if self.main(torrent_info=torrent_info, downloadhis=downloadhis):
                             # 添加到已处理数据库
                             processed[torrent_info.hash] = d
                             _failures.pop(torrent_info.hash, None)
@@ -658,7 +660,7 @@ class RenameTorrent(_PluginBase):
             logger.error(f"种子重命名失败 {str(e)}", exc_info=True)
 
     def main(self, downloader: str = None, downloadhis: DownloadHistory = None,
-             hash: str =None, torrent_info: TorrentInfo = None, 
+             hash: str = None, torrent_info: TorrentInfo = None,
              meta: MetaBase = None, media_info: MediaInfo = None) -> bool:
         """
         处理单个种子
@@ -695,13 +697,13 @@ class RenameTorrent(_PluginBase):
                     return True
         # 标签排除
         if success and self._exclude_tags and \
-            (common_tags := {tag.strip() for tag in self._exclude_tags.split(",") if tag} & set(torrent_info.tags)):
+                (common_tags := {tag.strip() for tag in self._exclude_tags.split(",") if tag} & set(torrent_info.tags)):
             success = False
             logger.info(f"{torrent_info.tags} 命中排除标签：{common_tags}")
             return True
         # 标签包含
         if success and self._include_tags and \
-            not (common_tags := {tag.strip() for tag in self._include_tags.split(",") if tag} & set(torrent_info.tags)):
+                not (common_tags := {tag.strip() for tag in self._include_tags.split(",") if tag} & set(torrent_info.tags)):
             success = False
             logger.info(f"{torrent_info.tags} 未命中包含标签：{common_tags}")
             return True
@@ -712,7 +714,8 @@ class RenameTorrent(_PluginBase):
             media_info = self.chain.recognize_media(meta=meta, mtype=MediaType(downloadhis.type),
                                                     tmdbid=downloadhis.tmdbid, doubanid=downloadhis.doubanid)
         if success and not meta:
-            logger.info(f"未找到与之关联的下载种子 hash: {torrent_info.hash} 种子名称：{torrent_info.name} 元数据识别可能不准确")
+            logger.info(
+                f"未找到与之关联的下载种子 hash: {torrent_info.hash} 种子名称：{torrent_info.name} 元数据识别可能不准确")
             meta = MetaInfo(torrent_info.name)
             logger.debug(f"种子名称:{torrent_info.name}")
             if not meta:
@@ -726,12 +729,13 @@ class RenameTorrent(_PluginBase):
                 success = False
         if success:
             logger.debug(f"种子 hash: {torrent_info.hash}  名称：{torrent_info.name} 开始执行重命名")
-            logger.debug(f"种子 hash: {torrent_info.hash}  名称：{torrent_info.name} torrent_info：{torrent_info} meta：{meta} media_info：{media_info}")
+            logger.debug(
+                f"种子 hash: {torrent_info.hash}  名称：{torrent_info.name} torrent_info：{torrent_info} meta：{meta} media_info：{media_info}")
             if self.format_torrent(torrent_info=torrent_info, meta=meta, media_info=media_info):
                 logger.info(f"种子 hash: {torrent_info.hash}  名称：{torrent_info.name} 处理完成")
                 # 添加已重命名标签
                 if self._add_tag_flag:
-                    self.downloader.torrents_add_tags(torrent_info.hash,["已重命名"])
+                    self.downloader.torrents_add_tags(torrent_info.hash, ["已重命名"])
                 return True
         # 处理失败
         return False
@@ -768,38 +772,39 @@ class RenameTorrent(_PluginBase):
         _torrent_hash = torrent_info.hash
         _torrent_name = torrent_info.name
         success = True
-        
+
         # 重命名种子名称
         new_name = self.format_torrent_name(
-                template_string=self._format_torrent_name,
-                meta=meta,
-                mediainfo=media_info)
+            template_string=self._format_torrent_name,
+            meta=meta,
+            mediainfo=media_info)
         logger.debug(f"种子 hash: {torrent_info.hash}  名称：{torrent_info.name} 重命名种子名称:{new_name}")
         try:
-            if None != new_name and None != _torrent_name and str(new_name) != _torrent_name :
+            if None != new_name and None != _torrent_name and str(new_name) != _torrent_name:
                 self.downloader.torrents_rename(torrent_hash=_torrent_hash, new_torrent_name=str(new_name))
                 logger.info(f"种子重命名成功 hash: {_torrent_hash} {_torrent_name} ==> {new_name}")
                 # 更改记录写入数据库
-                self.update_data(_torrent_hash, _torrent_name);
+                self.update_data(_torrent_hash, _torrent_name)
             else:
                 if None == _torrent_name:
                     logger.debug(f"种子重命名失败 hash: {_torrent_hash} {_torrent_name} 原因：种子名字为None")
                 if None == new_name:
                     logger.debug(f"种子重命名失败 hash: {_torrent_hash} {_torrent_name} 原因：新名字为None")
                 if str(new_name) == _torrent_name:
-                    logger.debug(f"种子重命名失败 hash: {_torrent_hash} {_torrent_name} 原因：新名字与原来的名字相同")
+                    logger.debug(
+                        f"种子重命名失败 hash: {_torrent_hash} {_torrent_name} 原因：新名字与原来的名字相同")
                 success = False
         except Exception as e:
             logger.error(f"种子重命名失败 hash: {_torrent_hash} {str(e)}", exc_info=True)
             success = False
         return success
-    
+
     @staticmethod
     def format_torrent_name(
-        template_string: str,
-        meta: MetaBase,
-        mediainfo: MediaInfo,
-        file_ext: str = None,
+            template_string: str,
+            meta: MetaBase,
+            mediainfo: MediaInfo,
+            file_ext: str = None,
     ) -> str:
         """
         根据媒体信息，返回Format字典
@@ -812,23 +817,26 @@ class RenameTorrent(_PluginBase):
             handler = TransHandler()
             return handler.get_naming_dict(
                 meta=meta, mediainfo=mediainfo, file_ext=file_ext)
-        # 处理mp的历史记录种子名称
+
+        # 处理mp的历史记录种子名称或从下载器获取的原始种子名
         logger.debug(f"处理前的种子名称:{meta.title}")
-        if meta.title.endswith('.torrent'):
-            # mp搜索下载种子名是文件名
-            # 定义正则表达式模式 去除开始的[站点名称]
-            pattern = r'^\[.*?\]\s*'
-            # 使用 re.sub 方法替换匹配到的内容为空字符串
-            meta.title = re.sub(pattern, '', meta.title)
-        else:
-            # 因为mp默认RSS信息带有副标题，所以对舍弃副标题
-            # 定义正则表达式模式
-            pattern = r'(?<!^)\[.*\]$'
-            # 使用 re.sub 方法将匹配到的内容替换为空字符串
-            meta.title = re.sub(pattern, '', meta.title)
-            # 去除首尾的空白字符
-            meta.title = meta.title.strip()
-        logger.debug(f"处理后的种子名称:{meta.title}")
+
+        # 移除可能的前缀（如 [站点名] 或 [标签]）及其后的分隔符（如空格、点等）
+        # 这个模式匹配以 [ 开头，] 结尾的标签，后面可能跟着空格或点
+        prefix_pattern = r'^\[.*?\][\s.]*'
+        processed_title = re.sub(prefix_pattern, '', meta.title)
+
+        # 移除末尾的 .torrent 后缀（如果存在）
+        processed_title = re.sub(r'\.torrent$', '', processed_title)
+
+        # 去除首尾的空白字符和可能的点（以防移除前缀后开头仍有分隔符）
+        processed_title = processed_title.strip(' .')
+
+        logger.debug(f"处理后的种子名称:{processed_title}")
+
+        # 将处理后的标题赋值回 meta.title，用于后续构建 rename_dict
+        meta.title = processed_title
+
         rename_dict = format_dict(meta=meta, mediainfo=mediainfo, file_ext=file_ext)
         logger.debug(f"rename_dict： {rename_dict}")
         handler = TransHandler()
@@ -863,14 +871,14 @@ class RenameTorrent(_PluginBase):
                         torrent_hash = torrent_info.hash
                         torrent_name = torrent_info.name
                         torrent_oldName = self.get_data(torrent_hash)
-                        if torrent_oldName != None :
+                        if torrent_oldName != None:
                             self.downloader.torrents_rename(torrent_hash=torrent_hash, new_torrent_name=str(torrent_oldName))
                             logger.info(f"种子恢复成功 hash: {torrent_hash} {torrent_name} ==> {torrent_oldName}")
                         else:
                             logger.debug(f"恢复处理记录: hash: {torrent_hash} oldName为None,")
                         self.del_data(torrent_hash)
                         # 恢复处理记录
-                        processed.pop(torrent_hash, None) 
+                        processed.pop(torrent_hash, None)
                         logger.debug(f"恢复处理记录: hash: {torrent_hash} name:{torrent_oldName}")
             # 保存已处理数据
             self.update_data(key="processed", value=processed)
