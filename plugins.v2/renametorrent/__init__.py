@@ -113,9 +113,9 @@ class RenameTorrent(_PluginBase):
     # 插件版本
     plugin_version = "2.6.9"
     # 插件作者
-    plugin_author = "Seed680"
+    plugin_author = "Anoyou"
     # 作者主页
-    author_url = "https://github.com/Seed680  "
+    author_url = "https://github.com/Anoyou  "
     # 插件配置项ID前缀
     plugin_config_prefix = "renametorrent_"
     # 加载顺序
